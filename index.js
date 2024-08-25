@@ -19,7 +19,15 @@ import cors from "cors";
 
 //express
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: "http://localhost:5173", // Alamat frontend Anda
+  methods: ["GET", "POST", "PUT", "DELETE"], // Metode HTTP yang diizinkan
+  allowedHeaders: ["Content-Type", "Authorization"], // Header yang diizinkan
+  credentials: true, // Jika Anda menggunakan kredensial (misalnya cookie)
+};
+
+app.use(cors(corsOptions));
 
 //dotenv
 dotenv.config();
