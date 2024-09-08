@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const orderSchema = new mongoose.Schema({
   cart: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Cart",
-      required: true,
+      user: { type: String, required: true },
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      quantity: { type: Number, required: true },
     },
   ],
   user: {
@@ -17,18 +17,15 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  shippingAddress2: {
-    type: String,
-    required: true,
-  },
-  city: {
-    type: String,
-    required: true,
-  },
-  postalCode: {
-    type: String,
-    required: true,
-  },
+
+  // city: {
+  //   type: String,
+  //   required: true,
+  // },
+  // postalCode: {
+  //   type: String,
+  //   required: true,
+  // },
   phone: {
     type: String,
     required: true,

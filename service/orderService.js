@@ -1,49 +1,52 @@
 import mongoose from "mongoose";
 import Cart from "../models/cartModels.js";
 import Order from "../models/orderModels.js";
+import Product from "../models/productsModels.js";
 
 export const addOrders = async (req, res) => {
-  const cartIds = Promise.all(
-    req.body.cart.map(async (cartItems) => {
-      let newCarts = new Cart({
-        quantity: cartItems.quantity,
-        product: cartItems.product,
-      });
-      newCarts = await newCarts.save();
-      return newCarts._id;
-    })
-  );
-  const cartIdsResolved = await cartIds;
-  const totalPrices = await Promise.all(
-    cartIdsResolved.map(async (orderItemId) => {
-      const orderItem = await Cart.findById(orderItemId).populate("product", "price");
-      const totalPrice = orderItem.product.price * orderItem.quantity;
-      return totalPrice;
-    })
-  );
-  const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
-
-  let orders = new Order({
-    cart: cartIdsResolved,
-    user: req.body.user,
-    shippingAddress1: req.body.shippingAddress1,
-    shippingAddress2: req.body.shippingAddress2,
-    postalCode: req.body.postalCode,
-    city: req.body.city,
-    phone: req.body.phone,
-    orderStatus: req.body.orderStatus,
-    totalPrice: totalPrice,
-    dateOrdered: req.body.dateOrdered,
-  });
-
   try {
-    orders = await orders.save();
-    if (!orders) {
-      return res.status(404).json({ message: "no order found" });
+    // 1. Pastikan req.body.cart berisi array yang valid
+    if (!req.body.cart || req.body.cart.length === 0) {
+      return res.status(400).json({ message: "Cart items are required" });
     }
-    res.status(200).json({ message: "success", data: orders });
+
+    // 2. Hitung total harga berdasarkan item dalam cart
+    const totalPrices = await Promise.all(
+      req.body.cart.map(async (cartItem) => {
+        const product = await Product.findById(cartItem.product);
+        const totalPrice = product.price * cartItem.quantity;
+        return totalPrice;
+      })
+    );
+
+    const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
+
+    // 3. Buat instance Order baru
+    let order = new Order({
+      cart: req.body.cart.map((item) => ({
+        user: item.user,
+        product: item.product,
+        quantity: item.quantity,
+      })),
+      user: req.body.user,
+      shippingAddress1: req.body.shippingAddress1,
+      postalCode: req.body.postalCode,
+      city: req.body.city,
+      phone: req.body.phone,
+      orderStatus: req.body.orderStatus,
+      totalPrice: totalPrice,
+      dateOrdered: req.body.dateOrdered || Date.now(),
+    });
+
+    // 4. Simpan order ke database
+    order = await order.save();
+
+    // 5. Kirim response sukses
+    return res.status(201).json({ message: "Order berhasil dibuat", data: order });
   } catch (err) {
-    res.status(200).json({ message: "fail to fetch order", error: err.message });
+    // Handle error dan kirim response gagal
+    console.error("Error menambahkan order:", err);
+    return res.status(500).json({ message: "Gagal menambahkan order", error: err.message });
   }
 };
 

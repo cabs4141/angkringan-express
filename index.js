@@ -12,7 +12,8 @@ import databaseConnection from "./database/database.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import cartRouters from "./routes/orderRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 import authJwt from "./middleware/jwt.js";
 import { errorHandler } from "./middleware/error.js";
 import cors from "cors";
@@ -38,7 +39,8 @@ app.use(errorHandler);
 app.use(`${apiUrl}/products`, productRoutes);
 app.use(`${apiUrl}/users`, userRoutes);
 app.use(`${apiUrl}/categories`, categoryRoutes);
-app.use(`${apiUrl}/orders`, cartRouters);
+app.use(`${apiUrl}/orders`, orderRoutes);
+app.use(`${apiUrl}/cart`, cartRoutes);
 
 //dbconnection
 databaseConnection();

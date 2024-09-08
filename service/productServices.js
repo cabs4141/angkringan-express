@@ -66,10 +66,12 @@ export const getAllProduct = async (req, res) => {
     filter = { category: req.query.categories.split(",") };
   }
   try {
-    const products = await Product.find(filter).select("name image price rating isFeatured alamat").populate("category");
+    const products = await Product.find(filter).select("name image price rating isFeatured alamat").populate("category").sort({ dateCreated: -1 }); // Mengurutkan berdasarkan dateCreated dari yang terbaru
+
     if (!products) {
       return res.status(400).json({ message: "bad request" });
     }
+
     res.status(200).json({ message: "success", data: products });
   } catch (error) {
     res.status(500).json({ message: "Error fetching products", error: error.message });

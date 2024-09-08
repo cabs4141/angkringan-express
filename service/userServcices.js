@@ -75,7 +75,7 @@ export const userDetail = async (req, res) => {
   try {
     const user = await User.findById(id).select("-passwordHash");
     if (!user) {
-      return res.satus(404).json({ message: "no user found" });
+      return res.status(404).json({ message: "no user found" });
     }
     res.status(200).json({ message: "success", data: user });
   } catch (error) {
@@ -147,11 +147,11 @@ export const userLogin = async (req, res) => {
         isAdmin: user.isAdmin,
       },
       secret,
-      { expiresIn: "1d" }
+      { expiresIn: "3d" }
     );
 
     return res.status(200).json({ success: true, message: "Login successful", data: { user: user.email, token } });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Fail to fetch login", error: error.message });
+    res.status(500).json({ success: false, message: "Fail to fetch login", error: error.message });
   }
 };
