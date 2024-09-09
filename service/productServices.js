@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Category from "../models/categoryModels.js";
 import Product from "../models/productsModels.js";
+import Cart from "../models/cartModels.js";
 import multer from "multer";
 
 const FILE_TYPE_MAP = {
@@ -99,17 +100,26 @@ export const getProductById = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   const { id } = req.params;
+
+  // Validasi ID produk
   if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ error: "invalid id" });
+    return res.status(400).json({ error: "Invalid product id" });
   }
+
   try {
+    // Hapus produk berdasarkan ID
     const product = await Product.findByIdAndDelete(id);
+
     if (!product) {
-      return res.status(404).json({ message: "product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
-    res.status(201).json({ message: "success", data: [{ id: product.id, product: product.name }] });
+
+    // Hapus semua Cart yang memiliki product id tersebut
+    await Cart.deleteMany({ $or: [{ product: id }, { product: null }] });
+
+    res.status(200).json({ message: "Product and related cart items deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "fail to delete product", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
