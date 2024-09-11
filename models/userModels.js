@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  profilePicture: {
+    type: String, // Pastikan field ini ada di skema
+  },
 });
 userSchema.virtual("id").get(function () {
   return this._id.toHexString();

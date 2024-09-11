@@ -13,8 +13,10 @@ function authJwt() {
       { url: /\/api\/v1\/categories(.*)/, methods: ["GET", "OPTIONS"] },
       { url: `${api}/users/login`, methods: ["POST"] },
       { url: `${api}/users/register`, methods: ["POST"] },
-      { url: "/auth/google", methods: ["GET"] },
-      { url: "/oauth", methods: ["GET"] },
+      { url: `${api}/auth/google`, methods: ["GET", "POST", "OPTIONS"] },
+      { url: `${api}/auth/google/callback`, methods: ["GET", "POST"] },
+      { url: `https://angkringan-express-production.up.railway.app/api/v1/auth/google`, methods: ["GET", "POST"] },
+      { url: `https://angkringan-express-production.up.railway.app/api/v1/auth/google/callback`, methods: ["GET", "POST"] },
     ],
   });
 }
