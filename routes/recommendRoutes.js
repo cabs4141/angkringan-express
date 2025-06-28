@@ -13,11 +13,48 @@ router.get("/:userId", async (req, res) => {
     const matrix = buildUserProductMatrix(orders);
     const userId = req.params.userId;
 
+    // CASE: Pengguna belum pernah order
     if (!matrix[userId]) {
-      return res.status(404).json({ message: "User tidak ditemukan dalam data order." });
+      // Ambil produk yang paling banyak dibeli secara umum
+      const productCount = {};
+      orders.forEach((order) => {
+        order.cart.forEach((item) => {
+          const id = item.product.toString();
+          productCount[id] = (productCount[id] || 0) + item.quantity;
+        });
+      });
+
+      const sortedProductIds = Object.entries(productCount)
+        .sort((a, b) => b[1] - a[1]) // urut berdasarkan jumlah terbanyak
+        .slice(0, 5) // ambil 5 teratas
+        .map(([id]) => id);
+
+      const products = await Product.find({ _id: { $in: sortedProductIds } });
+
+      const detailedRecommendations = sortedProductIds
+        .map((id) => {
+          const prod = products.find((p) => p._id.toString() === id);
+          if (!prod) return null;
+          return {
+            _id: prod._id,
+            name: prod.name,
+            image: prod.image,
+            price: prod.price,
+            alamat: prod.alamat, // skor berdasarkan popularitas
+            score: productCount[id], // skor berdasarkan popularitas
+          };
+        })
+        .filter(Boolean);
+
+      return res.json({
+        userId,
+        recommendations: detailedRecommendations,
+        note: "Rekomendasi berdasarkan popularitas karena belum ada riwayat order.",
+      });
     }
 
-    const scored = recommendProducts(userId, matrix, 3); // ← hasil [{product, score}]
+    // CASE: Pengguna sudah pernah order
+    const scored = recommendProducts(userId, matrix, 3);
     const productIds = scored.map((item) => item.product);
     const products = await Product.find({ _id: { $in: productIds } });
 
@@ -32,6 +69,7 @@ router.get("/:userId", async (req, res) => {
           name: prod.name,
           image: prod.image,
           price: prod.price,
+          alamat: prod.alamat, // skor berdasarkan popularitas
           score: scoreMap[id],
         };
       })
